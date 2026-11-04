@@ -4,9 +4,9 @@ from visualizer import plot_integrand_ions
 import matplotlib.pyplot as plt
 
 def main():
-    FILE_SEP = 'sl_x.txt'
-    FILE_GCR = 'gl_x.txt'
-    FILE_PROT = 'pp_x.txt'
+    FILE_SEP = 'data/sl_x.txt'
+    FILE_GCR = 'data/gl_x.txt'
+    FILE_PROT = 'data/pp_x.txt'
 
     # Параметры ЭКБ (для теста)
     SIGMA_SH = 1e-8
