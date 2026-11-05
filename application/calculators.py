@@ -1,9 +1,9 @@
 import numpy as np
 from scipy.integrate import simpson # заменить на самописный
 
-from data_reader import read_spectrum
-from interpolation import pow_interp
-from physics_models import sigma_ion, sigma_proton
+from RadiationProject.application.data_reader import read_spectrum
+from RadiationProject.application.interpolation import pow_interp
+from RadiationProject.application.physics_models import sigma_ion, sigma_proton
 
 
 def combine_ion_spectrum(file_sep, file_gcr, col=1):

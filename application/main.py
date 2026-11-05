@@ -1,20 +1,21 @@
-from calculators import combine_ion_spectrum, calculate_total_see
-from visualizer import plot_integrand_ions
-
 import matplotlib.pyplot as plt
 
-def main():
-    FILE_SEP = 'data/sl_x.txt'
-    FILE_GCR = 'data/gl_x.txt'
-    FILE_PROT = 'data/pp_x.txt'
+from RadiationProject.application.calculators import combine_ion_spectrum, calculate_total_see
+from RadiationProject.application.visualizer import plot_integrand_ions
 
-    # Параметры ЭКБ (для теста)
+
+def main():
+    FILE_SEP = '../data/sl_x.txt'
+    FILE_GCR = '../data/gl_x.txt'
+    FILE_PROT = '../data/pp_x.txt'
+
+    # Параметры (для теста)
     SIGMA_SH = 1e-8
     L0 = 1000.0
     SIGMA_P0 = 1e-12
     EP0 = 20.0
     DAYS = 365
-    SHIELD_COL = 1  # 1 = 10^-2 г/см2
+    SHIELD_COL = 1
 
     print("="*40)
     print(" РАСЧЕТ ЧУВСТВИТЕЛЬНОСТИ ЭКБ К ОРЭ")
