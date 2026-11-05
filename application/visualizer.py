@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from RadiationProject.application.physics_models import sigma_ion
-
+from physics_models import sigma_ion
 
 def plot_integrand_ions(x_common, y_total, sigma_sh, L0, k=10.0):
     sigma_values = sigma_ion(x_common, sigma_sh, L0, k)

@@ -1,5 +1,8 @@
 import numpy as np
 
+"""
+класс сечений
+"""
 
 def sigma_ion(L, sigma_sh, L0, k=10.0):
     """
@@ -16,9 +19,6 @@ def sigma_ion(L, sigma_sh, L0, k=10.0):
 def sigma_proton(E, sigma_p0, Ep0):
     """
     Формула Бендела для вероятности сбоя от протонов.
-    E - массив энергий
-    sigma_p0 - вероятность сбоя
-    Ep0 - порог энергии
     """
     E = np.asarray(E, dtype=float)
     result = np.zeros_like(E)

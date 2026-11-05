@@ -1,9 +1,9 @@
 import numpy as np
 from scipy.integrate import simpson # заменить на самописный
 
-from RadiationProject.application.data_reader import read_spectrum
-from RadiationProject.application.interpolation import pow_interp
-from RadiationProject.application.physics_models import sigma_ion, sigma_proton
+from data_reader import read_spectrum
+from interpolation import pow_interp
+from physics_models import sigma_ion, sigma_proton
 
 
 def combine_ion_spectrum(file_sep, file_gcr, col=1):
@@ -18,8 +18,8 @@ def combine_ion_spectrum(file_sep, file_gcr, col=1):
     if not np.any(mask_sep) or not np.any(mask_gcr):
         return np.array([]), np.array([])
 
-    x_min = max(x_sep[mask_sep].min(), x_gcr[mask_gcr].min())
-    x_max = min(x_sep[mask_sep].max(), x_gcr[mask_gcr].max())
+    x_min = min(x_sep[mask_sep].min(), x_gcr[mask_gcr].min())
+    x_max = max(x_sep[mask_sep].max(), x_gcr[mask_gcr].max())
 
     x_common = np.logspace(np.log10(x_min), np.log10(x_max), 1000)
 

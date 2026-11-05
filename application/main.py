@@ -1,13 +1,13 @@
 import matplotlib.pyplot as plt
 
-from RadiationProject.application.calculators import combine_ion_spectrum, calculate_total_see
-from RadiationProject.application.visualizer import plot_integrand_ions
+from calculators import combine_ion_spectrum, calculate_total_see
+from visualizer import plot_integrand_ions
 
 
 def main():
-    FILE_SEP = '../data/sl_x.txt'
-    FILE_GCR = '../data/gl_x.txt'
-    FILE_PROT = '../data/pp_x.txt'
+    FILE_SEP = 'data/sl_x.txt'
+    FILE_GCR = 'data/gl_x.txt'
+    FILE_PROT = 'data/pp_x.txt'
 
     # Параметры (для теста)
     SIGMA_SH = 1e-8
