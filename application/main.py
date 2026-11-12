@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 
 from calculators import combine_ion_spectrum, calculate_total_see
 from visualizer import plot_integrand_ions
+from physics_models import CrossSection
 
 
 def main():
@@ -35,8 +36,9 @@ def main():
     print("="*40)
 
     print("Строим график...")
+    section_plot = CrossSection(sigma_sh=SIGMA_SH, L0=L0, k=10.0)
     x_let, y_total = combine_ion_spectrum(FILE_SEP, FILE_GCR, col=SHIELD_COL)
-    fig = plot_integrand_ions(x_let, y_total, SIGMA_SH, L0)
+    fig = plot_integrand_ions(x_let, y_total, section_plot)
     plt.show()
 
 if __name__ == "__main__":

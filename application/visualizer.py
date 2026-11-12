@@ -1,10 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from physics_models import sigma_ion
+from physics_models import CrossSection
 
-def plot_integrand_ions(x_common, y_total, sigma_sh, L0, k=10.0):
-    sigma_values = sigma_ion(x_common, sigma_sh, L0, k)
+
+def plot_integrand_ions(x_common, y_total, section:CrossSection):
+    sigma_values = section.sigma_ion(x_common)
     integrand = sigma_values * y_total * x_common * np.log(10.0)
 
     sigma_plot = np.copy(sigma_values)
@@ -33,6 +34,6 @@ def plot_integrand_ions(x_common, y_total, sigma_sh, L0, k=10.0):
     lines2, labels2 = ax2.get_legend_handles_labels()
     ax1.legend(lines1 + lines2, labels1 + labels2, loc='lower left')
 
-    plt.title(f'Интеграл (L0={L0})')
+    plt.title(f'Интеграл (L0={section.L0})')
     plt.tight_layout()
     return fig
