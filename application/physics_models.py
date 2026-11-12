@@ -8,6 +8,7 @@ class CrossSection:
     def __init__(self, sigma_sh, L0, k=10.0, sigma_p0=None, Ep0=None):
         """
         Инициализация параметров.
+        
         :param sigma_sh: Сечение насыщения для ионов (см^2/бит)
         :param L0: Пороговая ЛПЭ для ионов (МэВ·см^2/г)
         :param k: Коэффициент в экспоненте (по умолчанию 10.0)
