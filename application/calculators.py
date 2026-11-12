@@ -1,13 +1,114 @@
 import numpy as np
-from scipy.integrate import simpson # заменить на самописный
 
 from data_reader import read_spectrum
 from interpolation import pow_interp
-from physics_models import sigma_ion, sigma_proton
+from physics_models import CrossSection
+
+
+class Integrator:
+    """
+    Класс для численного интегрирования и расчета частоты ОРЭ.
+    """
+    def __init__(self, use_simpson=True):
+        """
+        :param use_simpson: Если True — используем метод Симпсона, 
+                            если False — метод трапеций.
+        """
+        self.use_simpson = use_simpson
+
+
+    def __trapezoid(self, y, x):
+        """
+        Метод трапеций для интегрирования. (работает с любым шагом)
+        """
+        if len(x) < 2:
+            return 0.0
+        
+        integral = 0.0
+        for i in range(1, len(x)):
+            dx = x[i] - x[i-1]
+            height = (y[i] + y[i-1]) / 2.0
+            integral += dx * height
+        return integral
+
+
+    def __simpson(self, y, x):
+        """
+        Метод Симпсона для интегрирования. (нужен равномерный шаг)
+        Если точек чет колво, последний кусочек считаем методом трапеций.
+        """
+        n = len(x) - 1
+        if n < 2:
+            return self._trapezoid(y, x)
+
+        integral = 0.0
+        limit = n if n % 2 == 0 else n - 1
+        h = (x[1] - x[0])
+
+        for i in range(0, limit, 2):
+            integral += (h / 3.0) * (y[i] + 4*y[i+1] + y[i+2])
+        if limit < n:
+            integral += 0.5 * (y[limit] + y[n]) * (x[n] - x[limit])
+            
+        return integral
+
+
+    def _integrate(self, y, x):
+        """
+        Выбор способа интегрирования.
+        """
+        if self.use_simpson:
+            return self.__simpson(y, x)
+        else:
+            return self.__trapezoid(y, x)
+
+        
+    def calculate_ion(self, x_let, y_fluence, section:CrossSection):
+        """
+        Считает интеграл для ионов в лог-пространстве.
+        """
+        mask = x_let >= section.L0
+        if not np.any(mask):
+            return 0.0
+
+        x_valid = x_let[mask]
+        y_valid = y_fluence[mask]
+
+        sigma_values = section.sigma_ion(x_valid)
+        f_x = sigma_values * y_valid
+
+        # Интегрирование в лог-пространстве: dx = x * ln(10) * d(log10(x))
+        integrand = f_x * x_valid * np.log(10.0)
+        log_x = np.log10(x_valid)
+
+        return self._integrate(integrand, log_x)
+
+
+    def calculate_protons(self, x_E, y_flux, section:CrossSection, days_in_mission=365):
+        """
+        Считает интеграл для протонов в лог-пространстве.
+        """
+        mask = x_E >= section.Ep0
+        if not np.any(mask):
+            return 0.0
+
+        E_valid = x_E[mask]
+        flux_valid = y_flux[mask]
+
+        sigma_values = section.sigma_proton(E_valid)
+        f_E = sigma_values * flux_valid
+
+        integrand = f_E * E_valid * np.log(10.0)
+        log_E = np.log10(E_valid)
+
+        integral_value = self._integrate(y=integrand, x=log_E)
+        return integral_value * days_in_mission
 
 
 def combine_ion_spectrum(file_sep, file_gcr, col=1):
-    """Объединяет СКЛ и ГКЛ в один общий спектр ионов."""
+    """
+    Объединяет СКЛ и ГКЛ в один общий спектр ионов.
+    """
     x_sep, y_sep = read_spectrum(file_sep, col)
     x_gcr, y_gcr = read_spectrum(file_gcr, col)
 
@@ -30,56 +131,26 @@ def combine_ion_spectrum(file_sep, file_gcr, col=1):
     return x_common, y_total
 
 
-def calculate_ion(x_let, y_fluence, sigma_sh, L0, k=10.0):
-    """Считает интеграл для ионов в лог-пространстве."""
-    mask = x_let >= L0
-    if not np.any(mask):
-        return 0.0
-
-    x_valid = x_let[mask]
-    y_valid = y_fluence[mask]
-
-    sigma_values = sigma_ion(x_valid, sigma_sh, L0, k)
-    f_x = sigma_values * y_valid
-
-    # Интегрирование в лог-пространстве: dx = x * ln(10) * d(log10(x))
-    integrand = f_x * x_valid * np.log(10.0)
-    log_x = np.log10(x_valid)
-    
-    return simpson(y=integrand, x=log_x)
-
-
-def calculate_protons(x_E, y_flux, sigma_p0, Ep0, days_in_mission=365):
-    """Считает интеграл для протонов в лог-пространстве."""
-    mask = x_E >= Ep0
-    if not np.any(mask):
-        return 0.0
-
-    E_valid = x_E[mask]
-    flux_valid = y_flux[mask]
-
-    sigma_values = sigma_proton(E_valid, sigma_p0, Ep0)
-    f_E = sigma_values * flux_valid
-
-    integrand = f_E * E_valid * np.log(10.0)
-    log_E = np.log10(E_valid)
-    
-    integral_value = simpson(y=integrand, x=log_E)
-    return integral_value * days_in_mission
-
-
 def calculate_total_see(file_sep, file_gcr, file_prot, 
                         sigma_sh, L0, sigma_p0, Ep0, 
                         days_in_mission=365, col=1):
-    """Главная функция для интерфейса. Возвращает словарь с результатами."""
+    """
+    Главная функция для интерфейса. Возвращает словарь с результатами.
+    """
+    section = CrossSection(
+        sigma_sh=sigma_sh, L0=L0, k=10.0, 
+        sigma_p0=sigma_p0, Ep0=Ep0
+    )
+
+    integrator = Integrator(use_simpson=True) 
 
     # 1. Ионы (СКЛ + ГКЛ)
     x_let, y_total = combine_ion_spectrum(file_sep, file_gcr, col)
-    mu_ion = calculate_ion(x_let, y_total, sigma_sh, L0)
+    mu_ion = integrator.calculate_ion(x_let, y_total, section)
     
     # 2. Протоны
     x_p, y_p = read_spectrum(file_prot, col)
-    mu_prot = calculate_protons(x_p, y_p, sigma_p0, Ep0, days_in_mission)
+    mu_prot = integrator.calculate_protons(x_p, y_p, section, days_in_mission)
     
     # 3. Итог
     mu_total = mu_ion + mu_prot
