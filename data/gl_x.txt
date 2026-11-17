@@ -1,5 +1,5 @@
-Start year (from begining of solar cycle) =1 year
-Flight time=1 year(s)
+Start year (from begining of solar cycle) = 1 year
+Flight time = 1 year(s)
 Solar  cycle number - even
 Solar cycle - mean
 Apogee = 36000 km.

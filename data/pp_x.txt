@@ -1,9 +1,9 @@
-Start year (from begining of solar cycle) =1 year
-Flight time=1 year(s)
+Start year (from begining of solar cycle) = 1 year
+Flight time = 1 year(s)
 Activity of solar cycle - mean
-Apogee =   426 km.
-Perigee =   426 km.
-Inclination =51.6 deg.
+Apogee = 426 km.
+Perigee = 426 km.
+Inclination = 51.6 deg.
 Argument of perigee = 0.0 deg.
 RB PROTON SPECTRUM behind shielding
 Maximal orbital FLUX [protons/(MeV*cm2*day)]

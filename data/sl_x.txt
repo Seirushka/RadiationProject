@@ -1,6 +1,6 @@
-start=1 year
-Flight time=1 year(s)
-Probability= 0.01
+start = 1 year
+Flight time = 1 year(s)
+Probability = 0.01
 Solar cycle - mean
 Apogee = 36000 km.
 Perigee = 36000 km.

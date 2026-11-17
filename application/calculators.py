@@ -1,6 +1,6 @@
 import numpy as np
 
-from data_reader import read_spectrum
+from data_reader import Data
 from interpolation import pow_interp
 from physics_models import CrossSection
 
@@ -39,7 +39,7 @@ class Integrator:
         """
         n = len(x) - 1
         if n < 2:
-            return self._trapezoid(y, x)
+            return self.__trapezoid(y, x)
 
         integral = 0.0
         limit = n if n % 2 == 0 else n - 1
@@ -54,9 +54,7 @@ class Integrator:
 
 
     def _integrate(self, y, x):
-        """
-        Выбор способа интегрирования.
-        """
+        """Выбор способа интегрирования."""
         if self.use_simpson:
             return self.__simpson(y, x)
         else:
@@ -64,9 +62,7 @@ class Integrator:
 
         
     def calculate_ion(self, x_let, y_fluence, section:CrossSection):
-        """
-        Считает интеграл для ионов в лог-пространстве.
-        """
+        """Считает интеграл для ионов в лог-пространстве."""
         mask = x_let >= section.L0
         if not np.any(mask):
             return 0.0
@@ -77,7 +73,6 @@ class Integrator:
         sigma_values = section.sigma_ion(x_valid)
         f_x = sigma_values * y_valid
 
-        # Интегрирование в лог-пространстве: dx = x * ln(10) * d(log10(x))
         integrand = f_x * x_valid * np.log(10.0)
         log_x = np.log10(x_valid)
 
@@ -85,9 +80,7 @@ class Integrator:
 
 
     def calculate_protons(self, x_E, y_flux, section:CrossSection, days_in_mission=365):
-        """
-        Считает интеграл для протонов в лог-пространстве.
-        """
+        """Считает интеграл для протонов в лог-пространстве."""
         mask = x_E >= section.Ep0
         if not np.any(mask):
             return 0.0
@@ -105,14 +98,14 @@ class Integrator:
         return integral_value * days_in_mission
 
 
-def combine_ion_spectrum(file_sep, file_gcr, col=1):
-    """
-    Объединяет СКЛ и ГКЛ в один общий спектр ионов.
-    """
-    x_sep, y_sep = read_spectrum(file_sep, col)
-    x_gcr, y_gcr = read_spectrum(file_gcr, col)
+def combine_ion_spectrum(data: Data, col: int):
+    """Объединяет СКЛ и ГКЛ в один общий спектр ионов."""
+    if data.sep is None or data.gcr is None:
+        raise ValueError("Для объединения нужны оба спектра: SEP и GCR")
 
-    # Ищем границы только по ненулевым данным
+    x_sep, y_sep = data.sep.get_xy(col)
+    x_gcr, y_gcr = data.gcr.get_xy(col)
+
     mask_sep = (x_sep > 0) & (y_sep > 0)
     mask_gcr = (x_gcr > 0) & (y_gcr > 0)
     
@@ -131,7 +124,7 @@ def combine_ion_spectrum(file_sep, file_gcr, col=1):
     return x_common, y_total
 
 
-def calculate_total_see(file_sep, file_gcr, file_prot, 
+def calculate_total_see(data: Data, 
                         sigma_sh, L0, sigma_p0, Ep0, 
                         days_in_mission=365, col=1):
     """
@@ -144,17 +137,20 @@ def calculate_total_see(file_sep, file_gcr, file_prot,
 
     integrator = Integrator(use_simpson=True) 
 
-    # 1. Ионы (СКЛ + ГКЛ)
-    x_let, y_total = combine_ion_spectrum(file_sep, file_gcr, col)
+    # ионы (СКЛ + ГКЛ)
+    x_let, y_total = combine_ion_spectrum(data, col)
     mu_ion = integrator.calculate_ion(x_let, y_total, section)
     
-    # 2. Протоны
-    x_p, y_p = read_spectrum(file_prot, col)
-    mu_prot = integrator.calculate_protons(x_p, y_p, section, days_in_mission)
-    
-    # 3. Итог
+    # протоны
+    if data.protons is not None:
+        x_p, y_p = data.protons.get_xy(col)
+        mu_prot = integrator.calculate_protons(x_p, y_p, section, days_in_mission)
+    else:
+        mu_prot = 0.0
+
+    # итог
     mu_total = mu_ion + mu_prot
-    probability = (1.0 - np.exp(-mu_total)) * 100 # в процентах
+    probability = (1.0 - np.exp(-mu_total)) * 100
     
     return {
         "mu_ion": mu_ion,
