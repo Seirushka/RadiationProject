@@ -2,9 +2,10 @@ import matplotlib.pyplot as plt
 
 from data_reader import load_data
 from calculators import combine_ion_spectrum, calculate_total_see
-from visualizer import plot_integrand_ions
+#from visualizer import plot_integrand_ions
 from physics_models import CrossSection
 
+from gui import *
 
 def main():
     FILE_SEP = 'data/sl_x.txt'
@@ -57,4 +58,7 @@ def main():
     plt.show()
 
 if __name__ == "__main__":
-    main()
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
