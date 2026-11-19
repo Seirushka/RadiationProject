@@ -37,11 +37,6 @@ class SpectrumData:
 
     # свойства
     @property
-    def shielding_mg_cm2(self) -> Dict[int, float]:
-        """Толщины в мг/см2 (г/см2 * 1000)."""
-        return {col: val * 1000 for col, val in self.shielding_g_cm2.items()}
-
-    @property
     def is_flux(self) -> bool:
         return self.y_type == 'FLUX'
 
@@ -156,12 +151,12 @@ class Data:
     def validate(self) -> List[str]:
         """Проверяет базовую корректность загруженных данных."""
         errors = []
-        if self.sep is None:
-            errors.append("Не загружен спектр СКЛ (SEP)")
-        if self.gcr is None:
-            errors.append("Не загружен спектр ГКЛ (GCR)")
-        if self.protons is None:
-            errors.append("Не загружен спектр протонов (RB PROTON)")
+        # if self.sep is None:
+        #     errors.append("Не загружен спектр СКЛ (SEP)")
+        # if self.gcr is None:
+        #     errors.append("Не загружен спектр ГКЛ (GCR)")
+        # if self.protons is None:
+        #     errors.append("Не загружен спектр протонов (RB PROTON)")
 
         warn = self.orbit_warning()
         if warn:
@@ -334,13 +329,18 @@ class SpectrumReader:
 
         data = np.loadtxt(lines[data_start:], dtype=float)
 
+        if x_name == 'LET':
+            data[:, 0] /= 1000.0
+            for col in shielding.keys():
+                data[:, col] *= 1000.0
+
         spectrum = SpectrumData(
             filepath=filepath,
             spectrum_type=spectrum_type,
             x_name=x_name,
-            x_units=x_units,
+            x_units=x_units.replace('/g/', '/mg/'),
             y_type=y_type,
-            y_units=y_units,
+            y_units=y_units.replace('/g/', '/mg/'),
             time_unit=time_unit,
             metadata=metadata,
             shielding_g_cm2=shielding,
@@ -364,13 +364,3 @@ class SpectrumReader:
             gcr=self._spectra.get('GCR'),
             protons=self._spectra.get('RB_PROTON'),
         )
-
-
-# пока путь будет
-def load_data(file_sep: str, file_gcr: str, file_protons: str) -> Data:
-    """Загружает три файла и возвращает готовый Data."""
-    reader = SpectrumReader()
-    reader.add_file(file_sep)
-    reader.add_file(file_gcr)
-    reader.add_file(file_protons)
-    return reader.build()

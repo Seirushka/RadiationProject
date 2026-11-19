@@ -23,8 +23,8 @@ def draw_integrand_ions(fig, x_common, y_total, section):
     integrand_plot[integrand_plot <= 1e-20] = 1e-20
 
     ax1.loglog(x_common, y_total, 'black', linewidth=2, label='Спектр (левая ось)')
-    ax1.set_xlabel('LET, MeV/(g/cm$^2$)')
-    ax1.set_ylabel('Спектр частиц', color='black')
+    ax1.set_xlabel('LET, MeV/(mg/cm$^2$)')
+    ax1.set_ylabel('FLUENCE [particles/(MeV/(mg/cm2)*cm2)]', color='black')
     ax1.tick_params(axis='y', labelcolor='black')
     ax1.grid(True, which='both', ls=':')
 

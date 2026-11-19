@@ -1,12 +1,11 @@
-import sys
 import matplotlib
 matplotlib.use('QtAgg')
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QPushButton,
-    QVBoxLayout, QWidget, QFileDialog
+    QMainWindow, QPushButton, QVBoxLayout,
+    QWidget, QFileDialog, QMessageBox
 )
 
 from data_reader import SpectrumReader
@@ -18,8 +17,8 @@ from visualizer import draw_integrand_ions
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Radiation Effects — Файлы не загружены")
-        self.resize(1000, 700)
+        self.setWindowTitle("RadiationProject - Файлы не загружены")
+        self.resize(800, 600)
 
         self.reader = SpectrumReader()
         self.col = 5
@@ -47,7 +46,7 @@ class MainWindow(QMainWindow):
             self.reader.add_file(path)
             self.update_plot()
         except Exception as e:
-            print(f"Ошибка загрузки: {e}")
+            print(f"Ошибка загрузки:", str(e))
 
     def update_plot(self):
         data = self.reader.build()
@@ -55,12 +54,20 @@ class MainWindow(QMainWindow):
         if data.sep is None and data.gcr is None:
             self.figure.clf()
             ax = self.figure.add_subplot(111)
-            ax.text(0.5, 0.5, "Загрузите файлы СКЛ/ГКЛ",
+            ax.text(0.5, 0.5, "Загрузите файлы",
                     ha='center', va='center', fontsize=20)
+            ax.set_axis_off()
             self.canvas.draw()
             return
 
-        section = CrossSection(sigma_sh=1e-8, L0=1000.0,
+        errors = data.validate()
+        if errors:
+            QMessageBox.warning(self, "Внимание", "\n".join(errors))
+            
+            if not data.check_orbits():
+                return
+
+        section = CrossSection(sigma_sh=1e-8, L0=1.0,
                                sigma_p0=1e-12, Ep0=20.0)
 
         if data.sep is not None and data.gcr is not None:
@@ -77,11 +84,4 @@ class MainWindow(QMainWindow):
         if data.sep: parts.append("СКЛ")
         if data.gcr: parts.append("ГКЛ")
         if data.protons: parts.append("Протоны")
-        self.setWindowTitle(f"Radiation Effects — Загружено: {', '.join(parts)}")
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec())
+        self.setWindowTitle(f"RadiationProject - Загружено: {', '.join(parts)}")
